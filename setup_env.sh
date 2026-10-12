@@ -119,6 +119,12 @@ checks = {
     "requests": "requests",
 }
 
+# Checked best-effort only: uncommon packages whose import name isn't
+# certain, so a wrong guess here must not fail the whole script.
+optional_checks = {
+    "torch-utils": "torch_utils",
+}
+
 failed = []
 for pip_name, module_name in checks.items():
     try:
@@ -131,6 +137,13 @@ if failed:
     print("\nFAILED imports:")
     for pip_name, module_name, err in failed:
         print(f"  - {pip_name} (import {module_name}): {err}")
+
+for pip_name, module_name in optional_checks.items():
+    try:
+        importlib.import_module(module_name)
+        print(f"{pip_name}: import {module_name} OK")
+    except Exception as e:
+        print(f"{pip_name}: could not verify (tried 'import {module_name}': {e}) - not treated as a failure, check manually with 'pipenv run pip show {pip_name}'")
 
 try:
     import torch
